@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      REDIS_URL: redis://redis:6379
+      BASE_URL: http://localhost:3001
+      RATE_LIMIT_WINDOW_SECONDS: 60
+      RATE_LIMIT_MAX_REQUESTS: 30
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  redis_data:
